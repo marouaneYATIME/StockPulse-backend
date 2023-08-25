@@ -12,6 +12,17 @@ const cors = require("cors");
 
 const app = express();
 
+//Middlewares 
+app.use(express.json());
+app.use(express.urlencoded({extended: false}));
+app.use(bodyPaser.json());
+
+
+// Creating Routes 
+app.get("/", (req, res) => {
+    res.send("Home Page 1 ");
+});
+
 // Init port de connexion 
 const PORT = process.env.PORT || 5000;
 
