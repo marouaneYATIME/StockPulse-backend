@@ -9,13 +9,13 @@ const mongoose = require("mongoose");
 const userSchema = mongoose.Schema({
     name : {
         type : String,
-        required: [true, "Entrer un nom !"]
+        required: [true, "Veuillez Entrer un nom !"]
     }, 
     email: {
         type : String,
         unique: true,
         trim: true,
-        required: [true, "Entrer un mail !"],
+        required: [true, "Veuillez Entrer un mail !"],
         match: [
             /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
             "Entrer une adresse mal valide ! "
@@ -30,7 +30,7 @@ const userSchema = mongoose.Schema({
     photo:{
         type: String,
         default: "https://i.ibb.co/4pDNDk1/avatar.png",
-        required: [true, "Entrer une photo !"]
+        required: [true, "Veuillez Entrer une photo !"]
     },
     numero:{
         type: String,
@@ -49,4 +49,4 @@ const userSchema = mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
-module.exports = User
+module.exports = User;

@@ -10,6 +10,7 @@ const bodyPaser = require("body-parser");
 //const taskRoutes = require("./routes/taskRoute");
 const cors = require("cors"); 
 const userRoute = require("./routes/userRoute.js");
+const errorHandler = require("./middleWares/errorMiddleWare.js");
 
 
 
@@ -31,8 +32,10 @@ app.get("/", (req, res) => {
 // Init port de connexion 
 const PORT = process.env.PORT || 5000;
 
-// Cpnnect to DB and Start server
+// Error Middleware
+app.use(errorHandler);
 
+// Cpnnect to DB and Start server
 mongoose
     .connect(process.env.MONGO_DB_URI)
     .then(() => {
