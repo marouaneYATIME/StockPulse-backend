@@ -4,6 +4,8 @@
  */
 
 const mongoose = require("mongoose");
+const bcrybt = require("bcryptjs");
+
 
 // create the user shema 
 const userSchema = mongoose.Schema({
@@ -44,6 +46,19 @@ const userSchema = mongoose.Schema({
 
 },{
     timestamps: true
+});
+
+// Encrypter le mot de passe avant le sauvgarder dans l base de données 
+userSchema.pre("save",async function(next) {
+    if(!this.isModified("password")) {
+        return next();
+    }
+
+    // Hash password  
+    const salt = await  bcrybt.genSalt(10)
+    const hashedPassword = await bcrybt.hash(this.password, salt);
+    this.password = hashedPassword;
+    next();
 });
 
 

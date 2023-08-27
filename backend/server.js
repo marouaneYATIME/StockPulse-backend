@@ -11,6 +11,7 @@ const bodyPaser = require("body-parser");
 const cors = require("cors"); 
 const userRoute = require("./routes/userRoute.js");
 const errorHandler = require("./middleWares/errorMiddleWare.js");
+const cookieParser = require("cookie-parser");
 
 
 
@@ -18,6 +19,7 @@ const app = express();
 
 // Middlewares 
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({extended: false}));
 app.use(bodyPaser.json());
 
