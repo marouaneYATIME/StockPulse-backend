@@ -195,10 +195,44 @@ const loginStatus = asyncHandler( async (req, res) => {
 
 });   
 
+
+// Update User
+const updateUser = asyncHandler( async (req, res) => {
+
+    const user = await User.findById(req.user._id)
+
+    if (user) {
+        const {name, email, photo, numero, bio } = user;
+        user.email = email; 
+        user.name = req.body.name || name;
+        user.photo = req.body.photo || photo;
+        user.bio = req.body.bio || bio;
+        user.numero = req.body.numero || numero;
+
+        const updatedUser = await user.save();
+
+        res.status(200).json({
+            _id: updatedUser._id, 
+            name: updatedUser.name, 
+            email: updatedUser.email, 
+            photo: updatedUser.numero, 
+            numero: updatedUser.bio, 
+            bio: updatedUser.photo,
+        })
+    } else {
+        res.status(404);
+        throw new Error("Utilisateur introuvable");
+    }
+
+});
+
+
+
 module.exports = {
     registerUser,
     loginUser,
     logoutUser,
     getUser,
     loginStatus,
+    updateUser,
 };
