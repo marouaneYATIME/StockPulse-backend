@@ -14,8 +14,7 @@ const generateToken = (id) =>  {
     return jwt.sign({id}, process.env.JWT_SECRET, {expiresIn: "1d"})
 };
 
-
-
+// Register User
 const registerUser = asyncHandler( async (req,res) => {
    const {name, email, password} = req.body 
 
@@ -78,8 +77,128 @@ const registerUser = asyncHandler( async (req,res) => {
 
 });
 
+// Login User 
+const loginUser = asyncHandler( async (req, res) => {
+    
+    const {email, password} = req.body;
 
+    //res.send("Login user");
+
+    // Validate Request 
+    if (!email || !password){
+        res.status(400);
+        console.log(Error);
+        throw new Error("Veulliez entrer une adresse mail et un mot de passe !");
+    }
+
+    // check if user exists
+    const user = await User.findOne({email});
+
+    if (!user){
+        res.status(400);
+    throw new Error("Utilisateur introuvable !");
+    }
+
+    // User exists , Check if password is correct
+    const passwordIsCorrect = await bcrybt.compare(password, user.password);
+
+    // Generate Token 
+    const token = generateToken(user._id)
+
+    // Send  HTTP-only  cookie
+    if(passwordIsCorrect){
+        res.cookie("token", token, {
+            path: "/",
+            httpOnly: true,
+            expires: new Date(Date.now() + 1000 * 86400), // 1 day
+            sameSite: "none",
+            secure: true,
+        });        
+    }
+
+    // Get user information and chek it 
+    if(user && passwordIsCorrect){
+        const {_id, name, email, photo, numero, bio } = user;
+        res.status(201).json({
+            _id, 
+            name, 
+            email, 
+            photo, 
+            numero, 
+            bio,
+            token,
+        });
+
+    } else {
+        res.status(400);
+        throw new Error("mot de passe ou email invalide !");
+    }
+});
+
+// Logout User function 
+const logoutUser = asyncHandler( async (req, res) => {
+    res.cookie("token", "", {
+        path: "/",
+        httpOnly: true,
+        expires: new Date(0), // 1 day
+        sameSite: "none",
+        secure: true,
+    });
+    return res.status(200).json({ message: "Déconnexion réussie"})
+    
+    
+});
+
+
+// Get user from DataBase
+const getUser = asyncHandler( async (req, res) => {
+   
+    const user = await User.findById(req.user._id);
+
+    if(user){
+        const {_id, name, email, photo, numero, bio } = user;
+        res.status(201).json({
+            _id, 
+            name, 
+            email, 
+            photo, 
+            numero, 
+            bio,
+           
+        });
+
+    } else {
+        res.status(400);
+        throw new Error("Utilisateur introuvable !");
+    }
+    
+});
+
+
+// Get Login Status 
+const loginStatus = asyncHandler( async (req, res) => {
+
+    const token = req.cookies.token;
+
+    if(!token ){
+        return res.json(false)
+    }
+    
+    // Verify Token
+    const verifed = jwt.verify(token, process.env.JWT_SECRET);
+
+    if(verifed) {
+        return res.json(true)
+    }
+
+    return res.json(false);
+
+});   
 
 module.exports = {
     registerUser,
+    loginUser,
+    logoutUser,
+    getUser,
+    loginStatus,
 };
