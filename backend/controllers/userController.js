@@ -8,6 +8,10 @@ const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel.js");
 const bcrybt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const Token = require("../models/tokenModel.js");
+const crypto = require("crypto");
+const sendEmail = require("../utils/sendEmail.js");
+
 
 //Generate Token
 const generateToken = (id) =>  {
@@ -199,6 +203,7 @@ const loginStatus = asyncHandler( async (req, res) => {
 // Update User
 const updateUser = asyncHandler( async (req, res) => {
 
+    // Get the user
     const user = await User.findById(req.user._id)
 
     if (user) {
@@ -220,10 +225,111 @@ const updateUser = asyncHandler( async (req, res) => {
             bio: updatedUser.photo,
         })
     } else {
-        res.status(404);
+        res.status(400);
         throw new Error("Utilisateur introuvable");
     }
 
+});
+
+// Change password
+const changePassword = asyncHandler( async (req, res) => {  
+    // Get the user
+    const user = await User.findById(req.user._id);
+
+    const {oldPassword, password} = req.body
+
+    // Check user
+    if(!user){
+        res.status(400);
+        throw new Error("Utilisateur introuvable, veuiller vous connecter");
+    }
+
+    // Validate
+    if(!oldPassword || !password){
+        res.status(400);
+        throw new Error("Veuillez rentrer l'ancien et le nouveau mot de passe");
+    }
+
+    // Check  if old password matches password 
+    const passwordIsCorrect = await bcrybt.compare(oldPassword, user.password);
+   
+    // Save new password 
+    if (user && passwordIsCorrect) {
+        user.password = password;
+        await user.save();
+        res.status(200).send("Mot de passe à été changer !")
+    }else {
+        res.status(400);
+        throw new Error("Mot de passe incorrecte");
+    }
+
+});  
+
+
+const forgotPassword = asyncHandler( async (req, res) => {  
+
+    const {email} = req.body;
+    const user = await User.findOne({email});
+
+    if(!user) {
+        res.status(404);
+        throw new Error("Utilisatteur introuvable");
+
+    }
+
+    // Delete Token if ti exists in DB 
+    let token = await Token.findOne({userId: user._id});
+    if(token) {
+        await token.deleteOne();
+    }
+
+
+    // Create Reste Token 
+    let resetToken = crypto.randomBytes(32).toString("hex") + user._id;
+
+    // Hash token before saving to DB
+    const hashedToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+
+
+    // Save Token 
+    await new Token({
+        userId: user._id,
+        token: hashedToken,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + 30 * (60 * 1000) // Thirty minutes
+    }).save()
+    
+    
+    // Construct Reset Url
+    const resetUrl = `${process.env.FRONTEND_URL}/resetpassword/${resetToken}`
+
+    // Reset Email 
+    const message = `
+        <h2>Hello ${user.name}</h2>
+        <p>Please use the url below to reset your password</p>
+        <p>This reset link is valid for only 30minutes.</p>
+
+        <a href=${resetUrl} clicktracking=off>${resetUrl}</a>
+
+        <p>Regards...</p>
+        <p>StockPulse Team</p>
+    `;
+    const subject = "Password Reset Request";
+    const send_to = user.email;
+    const sent_from = process.env.EMAIL_USER;
+
+    try {
+        await sendEmail(subject, message, send_to, sent_from);
+        res.status(200).json({succuss: true,
+            message: "Reset Email Sent"})
+    } catch (error) {
+        res.status(500);
+        throw new Error("Email not sent, please try again");
+    }
+        
 });
 
 
@@ -235,4 +341,6 @@ module.exports = {
     getUser,
     loginStatus,
     updateUser,
+    changePassword,
+    forgotPassword,
 };
