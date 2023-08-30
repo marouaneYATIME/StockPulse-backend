@@ -5,7 +5,7 @@
  */
 
 const asyncHandler = require("express-async-handler");
-const Product = require("../models/productModel");
+const Product = require("../models/productModel.js");
 const { fileSizeFormatter } = require("../utils/fileUpload");
 const cloudinary = require("cloudinary").v2;
 
@@ -68,13 +68,16 @@ const getProducts = asyncHandler (async (req, res) => {
 
 // Get Single Products 
 const getProduct = asyncHandler (async (req, res) => { 
+    
     const product = await Product.findById(req.params.id);
 
+    // If product doesnt exist
     if (!product) {
         res.status(404);
         throw new Error("Produit Introuvable");
     }
 
+    // Match product to user 
     if(product.user.toString() !== req.user.id){
         res.status(404);
         throw new Error("Utilisateur non autorisé");
@@ -84,10 +87,36 @@ const getProduct = asyncHandler (async (req, res) => {
 
 });
 
+// Delete Product 
+const deleteProduct = asyncHandler (async (req, res) => { 
+
+    const product = await Product.findById(req.params.id);
+
+    // If product doesnt exist
+    if (!product) {
+        res.status(404);
+        throw new Error("Produit Introuvable");
+    }
+
+    // Match product to user 
+    if(product.user.toString() !== req.user.id){
+        res.status(404);
+        throw new Error("Utilisateur non autorisé");
+    }
+
+    await product.remove;
+    res.status(200).json({message: "Produit suprimmé "});
+
+
+});
+
+
+
 
 
 module.exports = {
     createProduct,
     getProducts,
     getProduct,
+    deleteProduct,
 }
