@@ -59,7 +59,35 @@ const createProduct = asyncHandler (async (req, res) => {
 
 });
 
+// Get all Products
+const getProducts = asyncHandler (async (req, res) => { 
+    const products = await Product.find({user: req.user.id}).sort("-createdAt");
+    res.status(200).json(products);
+
+});
+
+// Get Single Products 
+const getProduct = asyncHandler (async (req, res) => { 
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+        res.status(404);
+        throw new Error("Produit Introuvable");
+    }
+
+    if(product.user.toString() !== req.user.id){
+        res.status(404);
+        throw new Error("Utilisateur non autorisé");
+    }
+
+    res.status(200).json(product);
+
+});
+
+
 
 module.exports = {
     createProduct,
+    getProducts,
+    getProduct,
 }
