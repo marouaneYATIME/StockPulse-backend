@@ -111,7 +111,72 @@ const deleteProduct = asyncHandler (async (req, res) => {
 });
 
 
+// Update product 
 
+// Delete Product 
+const updateProduct = asyncHandler (async (req, res) => { 
+
+    const {name, categorie, quantity, price, description} = req.body;
+
+    const {id} = req.params;
+
+    const product = await Product.findById(req.params.id);    
+
+     // If product doesnt exist
+     if (!product) {
+        res.status(404);
+        throw new Error("Produit Introuvable");
+    }
+
+    // Match product to user 
+    if(product.user.toString() !== req.user.id){
+        res.status(404);
+        throw new Error("Utilisateur non autorisé");
+    }
+
+    // Handle Image upload 
+    let fileData = {}
+    if (req.file) {
+        // Save image to cloudinary
+        let uploadedFile;
+        try {
+            uploadedFile = await cloudinary.uploader
+             .upload(req.file.path, {folder: "StockPluse-app", resource_type: "image"});
+        } catch (error) {
+            res.status(500);
+            throw new Error("L'image clous n'a pas pu être téléchargée");
+        }
+
+        fileData = {
+            fileName: req.file.originalname,
+            filePath: uploadedFile.secure_url,
+            fileType: req.file.mimetype,
+            fileSize: fileSizeFormatter(req.file.size, 2),
+        }
+    }
+
+
+    // Update Product 
+
+    const productUpdated = await Product.findByIdAndUpdate(
+        {_id: id},
+        {
+            name,
+            categorie,
+            quantity,
+            price,
+            description,
+            image: fileData || product.image,
+        },
+        {
+            new: true,
+            runValidators: true,
+        }
+    )
+
+    res.status(201).json(productUpdated);
+
+});
 
 
 module.exports = {
@@ -119,4 +184,5 @@ module.exports = {
     getProducts,
     getProduct,
     deleteProduct,
+    updateProduct,
 }
