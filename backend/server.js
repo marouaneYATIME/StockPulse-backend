@@ -4,15 +4,15 @@
  */
 const dotenv = require("dotenv").config();
 const express = require("express");
-//const connectDB = require("./config/connectDB.js");
 const mongoose = require("mongoose");
 const bodyPaser = require("body-parser");
 //const taskRoutes = require("./routes/taskRoute");
 const cors = require("cors"); 
 const userRoute = require("./routes/userRoute.js");
+const productRoute = require("./routes/productRoute.js");
 const errorHandler = require("./middleWares/errorMiddleWare.js");
 const cookieParser = require("cookie-parser");
-
+const path = require("path");
 
 
 const app = express();
@@ -22,10 +22,14 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyPaser.json());
+app.use(cors());
 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes Middlewares 
 app.use("/api/users", userRoute);
+app.use("/api/products", productRoute);
+
 
 // Creating Routes 
 app.get("/", (req, res) => {
