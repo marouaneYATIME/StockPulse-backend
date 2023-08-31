@@ -10,6 +10,7 @@ const bodyPaser = require("body-parser");
 const cors = require("cors"); 
 const userRoute = require("./routes/userRoute.js");
 const productRoute = require("./routes/productRoute.js");
+const contactRoute = require("./routes/contactRoute.js");
 const errorHandler = require("./middleWares/errorMiddleWare.js");
 const cookieParser = require("cookie-parser");
 const path = require("path");
@@ -29,6 +30,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Routes Middlewares 
 app.use("/api/users", userRoute);
 app.use("/api/products", productRoute);
+app.use("/api/contactus", contactRoute);
+
 
 
 // Creating Routes 
