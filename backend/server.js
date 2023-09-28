@@ -7,7 +7,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyPaser = require("body-parser");
 //const taskRoutes = require("./routes/taskRoute");
-const cors = require("cors"); 
+app.use(cors({
+    origin: ["http://localhost:3000", "https://stockpulse-ten.vercel.app/"],
+    credentials: true
+}));
 const userRoute = require("./routes/userRoute.js");
 const productRoute = require("./routes/productRoute.js");
 const contactRoute = require("./routes/contactRoute.js");
